@@ -490,14 +490,7 @@ i915_gem_context_get_hang_stats(struct drm_device *dev,
 				struct drm_file *file,
 				u32 id)
 {
-	struct drm_i915_file_private *file_priv = file->driver_priv;
 	struct i915_hw_context *ctx;
-
-	if (id == DEFAULT_CONTEXT_ID)
-		return &file_priv->hang_stats;
-
-	if (!HAS_HW_CONTEXTS(dev))
-		return ERR_PTR(-ENOENT);
 
 	ctx = i915_gem_context_get(file->driver_priv, id);
 	if (ctx == NULL)
@@ -509,9 +502,15 @@ i915_gem_context_get_hang_stats(struct drm_device *dev,
 int i915_gem_context_open(struct drm_device *dev, struct drm_file *file)
 {
 	struct drm_i915_file_private *file_priv = file->driver_priv;
+	struct drm_i915_private *dev_priv = dev->dev_private;
 
-	if (!HAS_HW_CONTEXTS(dev))
+	if (!HAS_HW_CONTEXTS(dev)) {
+		/* Cheat for hang stats */
+		file_priv->private_default_ctx =
+			kzalloc(sizeof(struct i915_hw_context), GFP_KERNEL);
+		file_priv->private_default_ctx->vm = &dev_priv->gtt.base;
 		return 0;
+	}
 
 	idr_init(&file_priv->context_idr);
 
@@ -532,8 +531,11 @@ void i915_gem_context_close(struct drm_device *dev, struct drm_file *file)
 {
 	struct drm_i915_file_private *file_priv = file->driver_priv;
 
-	if (!HAS_HW_CONTEXTS(dev))
+	if (!HAS_HW_CONTEXTS(dev)) {
+		kfree(file_priv->private_default_ctx);
 		return;
+	}
+
 	idr_for_each(&file_priv->context_idr, context_idr_cleanup, NULL);
 	i915_gem_context_unreference(file_priv->private_default_ctx);
 	idr_destroy(&file_priv->context_idr);
@@ -721,9 +723,6 @@ int i915_switch_context(struct intel_ring_buffer *ring,
 
 	WARN_ON(!mutex_is_locked(&dev_priv->dev->struct_mutex));
 
-	if (!HAS_HW_CONTEXTS(ring->dev))
-		return 0;
-
 	if (file == NULL)
 		to = ring->default_context;
 	else
@@ -731,6 +730,10 @@ int i915_switch_context(struct intel_ring_buffer *ring,
 
 	if (to == NULL)
 		return -ENOENT;
+
+	/* We have the fake context, but don't supports switching. */
+	if (!HAS_HW_CONTEXTS(ring->dev))
+		return 0;
 
 	return do_switch(ring, to);
 }
