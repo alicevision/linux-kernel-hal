@@ -900,22 +900,24 @@ validate_exec_list(struct drm_i915_gem_exec_object2 *exec,
 	return 0;
 }
 
-static int
+static struct i915_hw_context *
 i915_gem_validate_context(struct drm_device *dev, struct drm_file *file,
 			  const u32 ctx_id)
 {
+	struct i915_hw_context *ctx = NULL;
 	struct i915_ctx_hang_stats *hs;
 
-	hs = i915_gem_context_get_hang_stats(dev, file, ctx_id);
-	if (IS_ERR(hs))
-		return PTR_ERR(hs);
+	ctx = i915_gem_context_get(file->driver_priv, ctx_id);
+	if (IS_ERR_OR_NULL(ctx))
+		return ctx;
 
+	hs = &ctx->hang_stats;
 	if (hs->banned) {
 		DRM_DEBUG("Context %u tried to submit while banned\n", ctx_id);
-		return -EIO;
+		return ERR_PTR(-EIO);
 	}
 
-	return 0;
+	return ctx;
 }
 
 static void
@@ -994,14 +996,15 @@ static int
 i915_gem_do_execbuffer(struct drm_device *dev, void *data,
 		       struct drm_file *file,
 		       struct drm_i915_gem_execbuffer2 *args,
-		       struct drm_i915_gem_exec_object2 *exec,
-		       struct i915_address_space *vm)
+		       struct drm_i915_gem_exec_object2 *exec)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
 	struct eb_vmas *eb;
 	struct drm_i915_gem_object *batch_obj;
 	struct drm_clip_rect *cliprects = NULL;
 	struct intel_ring_buffer *ring;
+	struct i915_hw_context *ctx;
+	struct i915_address_space *vm;
 	const u32 ctx_id = i915_execbuffer2_get_context_id(*args);
 	u32 exec_start, exec_len;
 	u32 mask, flags;
@@ -1117,11 +1120,18 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
 		goto pre_mutex_err;
 	}
 
-	ret = i915_gem_validate_context(dev, file, ctx_id);
-	if (ret) {
+	ctx = i915_gem_validate_context(dev, file, ctx_id);
+	if (IS_ERR_OR_NULL(ctx)) {
 		mutex_unlock(&dev->struct_mutex);
+		ret = PTR_ERR(ctx);
 		goto pre_mutex_err;
 	}
+
+	i915_gem_context_reference(ctx);
+
+	/* HACK until we have full PPGTT */
+	/* vm = ctx->vm; */
+	vm = &dev_priv->gtt.base;
 
 	eb = eb_create(args);
 	if (eb == NULL) {
@@ -1199,7 +1209,7 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
 	if (ret)
 		goto err;
 
-	ret = i915_switch_context(ring, file, ctx_id);
+	ret = i915_switch_context(ring, file, ctx);
 	if (ret)
 		goto err;
 
@@ -1254,6 +1264,8 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
 	i915_gem_execbuffer_retire_commands(dev, file, ring, batch_obj);
 
 err:
+	/* the request owns the ref now */
+	i915_gem_context_unreference(ctx);
 	eb_destroy(eb);
 
 	mutex_unlock(&dev->struct_mutex);
@@ -1275,7 +1287,6 @@ int
 i915_gem_execbuffer(struct drm_device *dev, void *data,
 		    struct drm_file *file)
 {
-	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct drm_i915_gem_execbuffer *args = data;
 	struct drm_i915_gem_execbuffer2 exec2;
 	struct drm_i915_gem_exec_object *exec_list = NULL;
@@ -1331,8 +1342,7 @@ i915_gem_execbuffer(struct drm_device *dev, void *data,
 	exec2.flags = I915_EXEC_RENDER;
 	i915_execbuffer2_set_context_id(exec2, 0);
 
-	ret = i915_gem_do_execbuffer(dev, data, file, &exec2, exec2_list,
-				     &dev_priv->gtt.base);
+	ret = i915_gem_do_execbuffer(dev, data, file, &exec2, exec2_list);
 	if (!ret) {
 		struct drm_i915_gem_exec_object __user *user_exec_list =
 			to_user_ptr(args->buffers_ptr);
@@ -1361,7 +1371,6 @@ int
 i915_gem_execbuffer2(struct drm_device *dev, void *data,
 		     struct drm_file *file)
 {
-	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct drm_i915_gem_execbuffer2 *args = data;
 	struct drm_i915_gem_exec_object2 *exec2_list = NULL;
 	int ret;
@@ -1392,8 +1401,7 @@ i915_gem_execbuffer2(struct drm_device *dev, void *data,
 		return -EFAULT;
 	}
 
-	ret = i915_gem_do_execbuffer(dev, data, file, args, exec2_list,
-				     &dev_priv->gtt.base);
+	ret = i915_gem_do_execbuffer(dev, data, file, args, exec2_list);
 	if (!ret) {
 		/* Copy the new buffer offsets back to the user's exec list. */
 		struct drm_i915_gem_exec_object2 *user_exec_list =
