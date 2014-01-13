@@ -444,6 +444,10 @@ static const u32 hsw_master_regs[] = {
 #undef REG64
 static const u32 gen7_vcs_regs[] = {
 	MFD_ERROR_STATUS,
+	MFC_BITSTREAM_BYTECOUNT_FRAME,
+	MFC_BITSTREAM_SE_BITCOUNT_FRAME,
+	MFC_IMAGE_STATUS_MASK,
+	MFC_IMAGE_STATUS_CONTROL,
 };
 
 static u32 gen7_render_get_cmd_length_mask(u32 cmd_header)
