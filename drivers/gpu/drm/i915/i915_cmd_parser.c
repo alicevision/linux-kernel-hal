@@ -448,6 +448,7 @@ static const u32 gen7_vcs_regs[] = {
 	MFC_BITSTREAM_SE_BITCOUNT_FRAME,
 	MFC_IMAGE_STATUS_MASK,
 	MFC_IMAGE_STATUS_CONTROL,
+	MFC_BITSTREAM_BYTECOUNT_SLICE,
 };
 
 static u32 gen7_render_get_cmd_length_mask(u32 cmd_header)
