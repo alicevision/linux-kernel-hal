@@ -5968,4 +5968,5 @@
 #define MIPI_READ_DATA_VALID(pipe)	_PIPE(pipe, _MIPIA_READ_DATA_VALID, _MIPIB_READ_DATA_VALID)
 #define  READ_DATA_VALID(n)				(1 << (n))
 
+#define MFD_ERROR_STATUS 0x12400
 #endif /* _I915_REG_H_ */

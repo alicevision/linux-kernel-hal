@@ -442,6 +442,9 @@ static const u32 hsw_master_regs[] = {
 };
 
 #undef REG64
+static const u32 gen7_vcs_regs[] = {
+	MFD_ERROR_STATUS,
+};
 
 static u32 gen7_render_get_cmd_length_mask(u32 cmd_header)
 {
@@ -583,6 +586,8 @@ void i915_cmd_parser_init_ring(struct intel_ring_buffer *ring)
 		ring->cmd_tables = gen7_video_cmds;
 		ring->cmd_table_count = ARRAY_SIZE(gen7_video_cmds);
 		ring->get_cmd_length_mask = gen7_bsd_get_cmd_length_mask;
+		ring->reg_table = gen7_vcs_regs;
+		ring->reg_count = ARRAY_SIZE(gen7_vcs_regs);
 		break;
 	case BCS:
 		if (IS_HASWELL(ring->dev)) {
