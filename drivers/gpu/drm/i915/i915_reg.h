@@ -4235,7 +4235,7 @@
 #define L3_CNTL_REG3_ADDRESS_OFFSET         ( 0xB024 )
 #define L3_SQC_REG1_ADDRESS_OFFSET          ( 0xB010 )
 #define L3_TLB_REG_ADDRESS_OFFSET           ( 0x4040 )
-
+#define OCL_MMIO_REG1						0x2678
 
 #define  GEN7_WA_FOR_GEN7_L3_CONTROL			0x3C4FFF8C
 #define  GEN7_L3AGDIS				(1<<19)
