@@ -4229,6 +4229,14 @@
 # define GEN8_CSC2_SBE_VUE_CACHE_CONSERVATIVE	(1<<0)
 
 #define GEN7_L3CNTLREG1				0xB01C
+
+//L3 cache stuff 
+#define L3_CNTL_REG2_ADDRESS_OFFSET         ( 0xB020 )
+#define L3_CNTL_REG3_ADDRESS_OFFSET         ( 0xB024 )
+#define L3_SQC_REG1_ADDRESS_OFFSET          ( 0xB010 )
+#define L3_TLB_REG_ADDRESS_OFFSET           ( 0x4040 )
+
+
 #define  GEN7_WA_FOR_GEN7_L3_CONTROL			0x3C4FFF8C
 #define  GEN7_L3AGDIS				(1<<19)
 
