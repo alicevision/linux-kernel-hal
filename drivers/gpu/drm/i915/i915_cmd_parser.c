@@ -421,6 +421,7 @@ static const u32 gen7_render_regs[] = {
 	L3_SQC_REG1_ADDRESS_OFFSET,
 	L3_TLB_REG_ADDRESS_OFFSET,
 	OCL_MMIO_REG1,
+	GEN7_L3SQCREG4,
 };
 
 static const u32 gen7_blt_regs[] = {
