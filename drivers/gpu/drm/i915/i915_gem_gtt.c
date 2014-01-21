@@ -1158,8 +1158,8 @@ void i915_gem_setup_global_gtt(struct drm_device *dev,
 static bool
 intel_enable_ppgtt(struct drm_device *dev)
 {
-	if (i915_enable_ppgtt >= 0)
-		return i915_enable_ppgtt;
+	if (i915.enable_ppgtt >= 0)
+		return i915.enable_ppgtt;
 
 #ifdef CONFIG_INTEL_IOMMU
 	/* Disable ppgtt on SNB if VT-d is on. */
@@ -1253,7 +1253,7 @@ static inline unsigned int gen8_get_total_gtt_size(u16 bdw_gmch_ctl)
 	if (bdw_gmch_ctl)
 		bdw_gmch_ctl = 1 << bdw_gmch_ctl;
 	if (bdw_gmch_ctl > 4) {
-		WARN_ON(!i915_preliminary_hw_support);
+		WARN_ON(!i915.preliminary_hw_support);
 		return 4<<20;
 	}
 

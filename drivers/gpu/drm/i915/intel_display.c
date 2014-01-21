@@ -2372,7 +2372,7 @@ intel_pipe_set_base(struct drm_crtc *crtc, int x, int y,
 	 * whether the platform allows pfit disable with pipe active, and only
 	 * then update the pipesrc and pfit state, even on the flip path.
 	 */
-	if (i915_fastboot) {
+	if (i915.fastboot) {
 		const struct drm_display_mode *adjusted_mode =
 			&intel_crtc->config.adjusted_mode;
 
@@ -4583,7 +4583,7 @@ retry:
 static void hsw_compute_ips_config(struct intel_crtc *crtc,
 				   struct intel_crtc_config *pipe_config)
 {
-	pipe_config->ips_enabled = i915_enable_ips &&
+	pipe_config->ips_enabled = i915.enable_ips &&
 				   hsw_crtc_supports_ips(crtc) &&
 				   pipe_config->pipe_bpp <= 24;
 }
@@ -4784,8 +4784,8 @@ intel_link_compute_m_n(int bits_per_pixel, int nlanes,
 
 static inline bool intel_panel_use_ssc(struct drm_i915_private *dev_priv)
 {
-	if (i915_panel_use_ssc >= 0)
-		return i915_panel_use_ssc != 0;
+	if (i915.panel_use_ssc >= 0)
+		return i915.panel_use_ssc != 0;
 	return dev_priv->vbt.lvds_use_ssc
 		&& !(dev_priv->quirks & QUIRK_LVDS_SSC_DISABLE);
 }
@@ -4844,7 +4844,7 @@ static void i9xx_update_pll_dividers(struct intel_crtc *crtc,
 
 	crtc->lowfreq_avail = false;
 	if (intel_pipe_has_type(&crtc->base, INTEL_OUTPUT_LVDS) &&
-	    reduced_clock && i915_powersave) {
+	    reduced_clock && i915.powersave) {
 		I915_WRITE(FP1(pipe), fp2);
 		crtc->config.dpll_hw_state.fp1 = fp2;
 		crtc->lowfreq_avail = true;
@@ -6348,7 +6348,7 @@ static int ironlake_crtc_mode_set(struct drm_crtc *crtc,
 	if (intel_crtc->config.has_dp_encoder)
 		intel_dp_set_m_n(intel_crtc);
 
-	if (is_lvds && has_reduced_clock && i915_powersave)
+	if (is_lvds && has_reduced_clock && i915.powersave)
 		intel_crtc->lowfreq_avail = true;
 	else
 		intel_crtc->lowfreq_avail = false;
@@ -6716,7 +6716,7 @@ static void __hsw_enable_package_c8(struct drm_i915_private *dev_priv)
 		return;
 
 	schedule_delayed_work(&dev_priv->pc8.enable_work,
-			      msecs_to_jiffies(i915_pc8_timeout));
+			      msecs_to_jiffies(i915.pc8_timeout));
 }
 
 static void __hsw_disable_package_c8(struct drm_i915_private *dev_priv)
@@ -6815,7 +6815,7 @@ static void hsw_update_package_c8(struct drm_device *dev)
 	if (!HAS_PC8(dev_priv->dev))
 		return;
 
-	if (!i915_enable_pc8)
+	if (!i915.enable_pc8)
 		return;
 
 	mutex_lock(&dev_priv->pc8.lock);
@@ -8201,7 +8201,7 @@ void intel_mark_idle(struct drm_device *dev)
 
 	hsw_package_c8_gpu_idle(dev_priv);
 
-	if (!i915_powersave)
+	if (!i915.powersave)
 		return;
 
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
@@ -8221,7 +8221,7 @@ void intel_mark_fb_busy(struct drm_i915_gem_object *obj,
 	struct drm_device *dev = obj->base.dev;
 	struct drm_crtc *crtc;
 
-	if (!i915_powersave)
+	if (!i915.powersave)
 		return;
 
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
@@ -9851,7 +9851,7 @@ intel_set_config_compute_mode_changes(struct drm_mode_set *set,
 			struct intel_crtc *intel_crtc =
 				to_intel_crtc(set->crtc);
 
-			if (intel_crtc->active && i915_fastboot) {
+			if (intel_crtc->active && i915.fastboot) {
 				DRM_DEBUG_KMS("crtc has no fb, will flip\n");
 				config->fb_changed = true;
 			} else {
@@ -10051,7 +10051,7 @@ static int intel_crtc_set_config(struct drm_mode_set *set)
 		 * flipping, so increasing its cost here shouldn't be a big
 		 * deal).
 		 */
-		if (i915_fastboot && ret == 0)
+		if (i915.fastboot && ret == 0)
 			intel_modeset_check_state(set->crtc->dev);
 	}
 
@@ -11299,7 +11299,7 @@ void intel_modeset_setup_hw_state(struct drm_device *dev,
 	 */
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list,
 			    base.head) {
-		if (crtc->active && i915_fastboot) {
+		if (crtc->active && i915.fastboot) {
 			intel_crtc_mode_from_pipe_config(crtc, &crtc->config);
 
 			DRM_DEBUG_KMS("[CRTC:%d] found active mode: ",
