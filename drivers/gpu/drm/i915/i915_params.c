@@ -47,6 +47,7 @@ struct i915_params i915 __read_mostly = {
 	.prefault_disable = 0,
 	.reset = true,
 	.invert_brightness = 0,
+	.enable_cmd_parser = 0,
 };
 
 module_param_named(modeset, i915.modeset, int, 0400);
@@ -153,3 +154,7 @@ MODULE_PARM_DESC(invert_brightness,
 	"report PCI device ID, subsystem vendor and subsystem device ID "
 	"to dri-devel@lists.freedesktop.org, if your machine needs it. "
 	"It will then be included in an upcoming module version.");
+
+module_param_named(enable_cmd_parser, i915.enable_cmd_parser, int, 0600);
+MODULE_PARM_DESC(enable_cmd_parser,
+		 "Enable command parsing (1=enabled, 0=disabled [default])");
