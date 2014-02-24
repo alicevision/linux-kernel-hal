@@ -969,10 +969,22 @@ static int gen6_do_reset(struct drm_device *dev)
 	intel_uncore_forcewake_reset(dev);
 
 	/* If reset with a user forcewake, try to restore, otherwise turn it off */
-	if (dev_priv->uncore.forcewake_count)
-		dev_priv->uncore.funcs.force_wake_get(dev_priv, FORCEWAKE_ALL);
-	else
-		dev_priv->uncore.funcs.force_wake_put(dev_priv, FORCEWAKE_ALL);
+	if (IS_VALLEYVIEW(dev)) {
+		if (dev_priv->uncore.fw_rendercount)
+			dev_priv->uncore.funcs.force_wake_get(dev_priv, FORCEWAKE_RENDER);
+		else
+			dev_priv->uncore.funcs.force_wake_put(dev_priv, FORCEWAKE_RENDER);
+
+		if (dev_priv->uncore.fw_mediacount)
+			dev_priv->uncore.funcs.force_wake_get(dev_priv, FORCEWAKE_MEDIA);
+		else
+			dev_priv->uncore.funcs.force_wake_put(dev_priv, FORCEWAKE_MEDIA);
+	} else {
+		if (dev_priv->uncore.forcewake_count)
+			dev_priv->uncore.funcs.force_wake_get(dev_priv, FORCEWAKE_ALL);
+		else
+			dev_priv->uncore.funcs.force_wake_put(dev_priv, FORCEWAKE_ALL);
+	}
 
 	/* Restore fifo count */
 	if (IS_GEN6(dev) || IS_GEN7(dev))
