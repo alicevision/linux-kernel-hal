@@ -866,6 +866,8 @@ void intel_display_power_put(struct drm_device *dev,
 			     enum intel_display_power_domain domain);
 void intel_power_domains_init_hw(struct drm_device *dev);
 void intel_set_power_well(struct drm_device *dev, bool enable);
+void intel_init_gt_powersave(struct drm_device *dev);
+void intel_cleanup_gt_powersave(struct drm_device *dev);
 void intel_enable_gt_powersave(struct drm_device *dev);
 void intel_disable_gt_powersave(struct drm_device *dev);
 void ironlake_teardown_rc6(struct drm_device *dev);
