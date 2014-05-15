@@ -4493,7 +4493,7 @@ void intel_enable_gt_powersave(struct drm_device *dev)
 		ironlake_enable_drps(dev);
 		ironlake_enable_rc6(dev);
 		intel_init_emon(dev);
-	} else if (IS_GEN6(dev) || IS_GEN7(dev)) {
+	} else if (IS_GEN6(dev) || IS_GEN7(dev) || IS_BROADWELL(dev)) {
 		/*
 		 * PCU communication is slow and this doesn't need to be
 		 * done at any specific time, so do this out of our fast path
