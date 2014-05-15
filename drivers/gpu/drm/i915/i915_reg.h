@@ -5030,6 +5030,7 @@
 #define GEN6_RC6p_THRESHOLD			0xA0BC
 #define GEN6_RC6pp_THRESHOLD			0xA0C0
 #define GEN6_PMINTRMSK				0xA168
+#define GEN8_PMINTR_REDIRECT_TO_NON_DISP	(1<<31)
 
 #define GEN6_PMISR				0x44020
 #define GEN6_PMIMR				0x44024 /* rps_lock */
