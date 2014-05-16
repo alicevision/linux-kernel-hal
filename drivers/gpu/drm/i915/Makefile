@@ -17,6 +17,7 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
 	  i915_cmd_parser.o \
 	  i915_params.o \
 	  i915_sysfs.o \
+	  i915_gem_userptr.o \
 	  i915_trace_points.o \
 	  i915_ums.o \
 	  intel_display.o \
