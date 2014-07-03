@@ -558,6 +558,22 @@ err:
 	return ret;
 }
 
+static void bdw_init_workarounds(struct drm_device *dev)
+{
+	struct drm_i915_private *dev_priv = dev->dev_private;
+
+	/* Use Force Non-Coherent whenever executing a 3D context. This is a
+	 * workaround for for a possible hang in the unlikely event a TLB
+	 * invalidation occurs during a PSD flush.
+	 */
+	/* WaDisableFenceDestinationToSLM:bdw */
+	I915_WRITE(HDC_CHICKEN0,
+		   I915_READ(HDC_CHICKEN0) |
+		   _MASKED_BIT_ENABLE(HDC_FENCE_DESTINATION_TO_SLM_DISABLE) |
+		   _MASKED_BIT_ENABLE(HDC_FORCE_NON_COHERENT));
+
+}
+
 static int init_render_ring(struct intel_ring_buffer *ring)
 {
 	struct drm_device *dev = ring->dev;
@@ -614,6 +630,9 @@ static int init_render_ring(struct intel_ring_buffer *ring)
 
 	if (HAS_L3_DPF(dev))
 		I915_WRITE_IMR(ring, ~GT_PARITY_ERROR(dev));
+
+	if (IS_BROADWELL(dev))
+		bdw_init_workarounds(dev);
 
 	return ret;
 }
