@@ -1194,6 +1194,8 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
 				      file->is_master);
 		if (ret)
 			goto err;
+		else
+			flags |= I915_DISPATCH_SECURE;
 
 		/*
 		 * XXX: Actually do this when enabling batch copy...
