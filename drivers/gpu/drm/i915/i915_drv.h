@@ -164,6 +164,7 @@ enum hpd_pin {
 		if ((intel_encoder)->base.crtc == (__crtc))
 
 struct drm_i915_private;
+struct i915_mm_struct;
 struct i915_mmu_object;
 
 enum intel_dpll_id {
@@ -1483,9 +1484,8 @@ typedef struct drm_i915_private {
 	struct i915_gtt gtt; /* VMA representing the global address space */
 
 	struct i915_gem_mm mm;
-#if defined(CONFIG_MMU_NOTIFIER)
-	DECLARE_HASHTABLE(mmu_notifiers, 7);
-#endif
+	DECLARE_HASHTABLE(mm_structs, 7);
+	struct mutex mm_lock;
 
 	/* Kernel Modesetting */
 
@@ -1740,8 +1740,8 @@ struct drm_i915_gem_object {
 			unsigned workers :4;
 #define I915_GEM_USERPTR_MAX_WORKERS 15
 
-			struct mm_struct *mm;
-			struct i915_mmu_object *mn;
+			struct i915_mm_struct *mm;
+			struct i915_mmu_object *mmu_object;
 			struct work_struct *work;
 		} userptr;
 	};
