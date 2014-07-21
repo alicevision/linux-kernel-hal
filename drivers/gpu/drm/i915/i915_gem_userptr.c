@@ -197,7 +197,7 @@ i915_mmu_notifier_get(struct drm_device *dev, struct mm_struct *mm)
 	mmu->mm = mm;
 	mmu->objects = RB_ROOT;
 	mmu->count = 0;
-	mmu->serial = 1;
+	mmu->serial = 0;
 	INIT_LIST_HEAD(&mmu->linear);
 	mmu->is_linear = false;
 
