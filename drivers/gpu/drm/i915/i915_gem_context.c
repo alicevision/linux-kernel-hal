@@ -737,6 +737,11 @@ static int do_switch(struct intel_ring_buffer *ring,
 		i915_gem_context_unreference(from);
 	} else {
 		if (to->is_initialized == false) {
+			if (ring->init_context) {
+				ret = ring->init_context(ring);
+				if (ret)
+					DRM_ERROR("ring init context: %d\n", ret);
+			}
 			ret = i915_gem_render_state_init(ring);
 			if (ret)
 				DRM_ERROR("init render state: %d\n", ret);
