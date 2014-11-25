@@ -636,9 +636,7 @@ static int gen8_init_workarounds(struct intel_ring_buffer *ring)
 	/* WaDisableFenceDestinationToSLM:bdw (GT3 pre-production) */
 	intel_ring_emit_wa(ring, HDC_CHICKEN0,
 			   _MASKED_BIT_ENABLE(HDC_FORCE_NON_COHERENT |
-					      (IS_BDW_GT3(dev) ?
-					       HDC_FENCE_DEST_SLM_DISABLE : 0)
-				   ));
+					       HDC_FENCE_DEST_SLM_DISABLE ));
 
 	/* Wa4x4STCOptimizationDisable:bdw */
 	intel_ring_emit_wa(ring, CACHE_MODE_1,
