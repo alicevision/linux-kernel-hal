@@ -2078,6 +2078,68 @@ static int intel_wa_registers(struct seq_file *m, void *unused)
 	return 0;
 }
 
+static int i915_ringstat_info(struct seq_file *m, void *data)
+{
+	struct drm_info_node *node = (struct drm_info_node *) m->private;
+	struct drm_device *dev = node->minor->dev;
+	drm_i915_private_t *dev_priv = dev->dev_private;
+	struct intel_ring_buffer *ring;
+	struct drm_i915_gem_request *gem_request;
+	int ret, i;
+
+	struct ring_info {
+		char * name;
+		int id;
+		int size;
+		int head;
+		int tail;
+		int seqno;
+		int jiffies;
+	};
+	struct ring_info ringstats[I915_NUM_RINGS] = {{0},{0},{0},{0}};
+	
+	/* Need to lock to get valid snapshot - keep overheads to min */
+	ret = mutex_lock_interruptible(&dev->struct_mutex);
+	if (ret) {
+		return ret;
+	}
+
+	for_each_ring(ring, dev_priv, i) {
+		ringstats[i].name = (char *) ring->name;
+ 		ringstats[i].id = ring->id;
+		ringstats[i].size = ring->size;
+		ringstats[i].tail = ring->tail;
+
+		/* outstanding requests */
+		if (list_empty(&ring->request_list)) {
+			ringstats[i].seqno = -1; /* set to -1 to indicate empty */
+			ringstats[i].jiffies = 0;
+			ringstats[i].head = ringstats[i].tail;
+		} else {
+			list_for_each_entry(gem_request, &ring->request_list, list) {
+				ringstats[i].jiffies = (int) (jiffies - gem_request->emitted_jiffies);
+				ringstats[i].seqno = gem_request->seqno;
+				ringstats[i].head = gem_request->head;
+				break;
+ 			}
+		}	
+	}
+	mutex_unlock(&dev->struct_mutex);
+
+	/* Now Print the data out */
+	for (i = 0; i < I915_NUM_RINGS; i++) {
+	seq_printf(m,"%s:%d:%d:%d:%d:%d:%d\n",
+		ringstats[i].name,
+		ringstats[i].id,
+		ringstats[i].size,
+		ringstats[i].head,
+		ringstats[i].tail,
+		ringstats[i].seqno,
+		ringstats[i].jiffies );
+	}
+	return 0;
+}
+
 struct pipe_crc_info {
 	const char *name;
 	struct drm_device *dev;
@@ -3354,7 +3416,8 @@ static const struct drm_info_list i915_debugfs_list[] = {
 	{"i915_energy_uJ", i915_energy_uJ, 0},
 	{"i915_pc8_status", i915_pc8_status, 0},
 	{"i915_power_domain_info", i915_power_domain_info, 0},
-	{"intel_wa_registers", intel_wa_registers, 0}
+	{"intel_wa_registers", intel_wa_registers, 0},
+	{"i915_ringstats", i915_ringstat_info, 0},
 };
 #define I915_DEBUGFS_ENTRIES ARRAY_SIZE(i915_debugfs_list)
 
